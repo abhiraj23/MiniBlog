@@ -1,4 +1,4 @@
-from django.shortcuts import render, HttpResponseRedirect, redirect
+from django.shortcuts import render, HttpResponseRedirect, redirect,  get_object_or_404
 from .forms import SignupForm, LoginForm, PostForm
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
@@ -24,7 +24,7 @@ def dashboard(request):
         posts = Post.objects.filter(user_post = request.user)
         # posts = Post.objects.all()
         full_name = request.user.get_full_name()
-        print(full_name)
+
         return render(request, "blog/dashboard.html", {'posts': posts, 'full_name': full_name})
     else:
         return HttpResponseRedirect('/login/')
@@ -34,7 +34,7 @@ def user_signup(request):
     if request.method == "POST":
         form = SignupForm(request.POST)
         if form.is_valid():
-            messages.success(request,"Welcome, Account is created")
+            messages.success(request, "Welcome, Account is created")
             user = form.save()
             # group = Group.objects.get(name='Author')
             # user.groups.add(group)
@@ -73,10 +73,10 @@ def add_post(request):
         if request.method == 'POST':
             form= PostForm(request.POST)
             if form.is_valid():
-                # post = form.save(commit=False)
-                # post.user_post = request.user
-                form.save() 
-                form = PostForm()
+                post = form.save(commit=False)
+                post.user_post = request.user
+                post.save()
+                return redirect('dashboard')
                 # form.save()
         else:
             form = PostForm()
@@ -89,9 +89,10 @@ def update_post(request, id):
     if request.user.is_authenticated:
         if request.method == "POST":
             pi= Post.objects.get(pk=id)
-            form = PostForm(reaquest.POST, instance=pi)
+            form = PostForm(request.POST, instance=pi)
             if form.is_valid:
                 form.save()
+                return redirect('dashboard')
         else:
             pi= Post.objects.get(pk=id)
             form = PostForm(instance=pi)
@@ -102,6 +103,20 @@ def update_post(request, id):
 
 def delete_post(request, id):
     if request.user.is_authenticated:
-        return HttpResponseRedirect('/dashboard/')
+        # Get the post object by its ID
+        post = get_object_or_404(Post, id=id)
+        
+        # Check if the post belongs to the logged-in user
+        if post.user_post == request.user:
+            # Delete the post
+            post.delete()
+            # Redirect to the dashboard or any other appropriate page
+            return HttpResponseRedirect('/dashboard/')
+        else:
+            # If the post doesn't belong to the user, return a permission denied message or redirect to an error page
+            return render(request, 'error.html', {'message': 'You do not have permission to delete this post.'})
     else:
+        # If the user is not authenticated, redirect to the login page
         return HttpResponseRedirect('/login/')
+    
+    

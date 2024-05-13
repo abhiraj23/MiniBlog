@@ -8,6 +8,8 @@ from. models import Post
 class SignupForm(UserCreationForm):
     password1 = forms.CharField(label='Password', widget=forms.PasswordInput(attrs={'class':'form-control'}))
     password2 = forms.CharField(label='Confirm Password', widget=forms.PasswordInput(attrs={'class':'form-control'}))
+    email = forms.EmailField(label=_("Email"), required=True, widget=forms.EmailInput(attrs={'class': 'form-control'}))
+
 
     class Meta:
         model = User
@@ -18,6 +20,12 @@ class SignupForm(UserCreationForm):
                   'last_name':forms.TextInput(attrs={'class':'form-control'}),
                   'email':forms.EmailInput(attrs={'class':'form-control'})
                   }
+    
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError("This email address is already in use. Please use a different email address.")
+        return email
         
 
 
@@ -34,7 +42,8 @@ class PostForm(forms.ModelForm):
     class Meta:
         model = Post
 
-        fields = ['title', 'desc', 'user_post']
+        # fields = ['title', 'desc', 'user_post']
+        exclude = ['user_post'] 
         labels = {'title':'Title', 'desc':'Description'}
         widgets = {'title':forms.TextInput(attrs={'class':'form-control'}),
                    'desc':forms.Textarea(attrs={'class':'form-control'}),}

@@ -4,7 +4,7 @@
 {% block msg %}
 {% if messages%}
 {%for message in messages%}
-<div {% if message.tags%} class='alert alert-{{message.tags}} alert-dismissible fade show'{% endif %}>
+<div {% if message.tags%} class='alert alert-{{message.tags}} alert-dismissible fade show auto-dismiss'{% endif %}>
 <strong>{{message}}</strong>
 <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
     <span aria-hidden='true'>&times;</span>
@@ -39,7 +39,7 @@
         <tbody>
             {% for post in posts %}
             <tr>
-                <th scope='row'>{{post.id}}</th>
+                <th scope='row'>{{ forloop.counter }}</th> <!-- Displaying the loop counter as post ID-->
                 <td>{{post.title}}</td>
                 <td>{{post.desc}}</td>
                 <td class='text-center'>
